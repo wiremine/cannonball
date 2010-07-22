@@ -11,68 +11,96 @@ from dulwich import objects
 
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
-from pygments.lexers import DiffLexer
+from pygments.lexers import DiffLexer, guess_lexer, guess_lexer_for_filename, PythonLexer
 
 from cannonball.patch import unified_diff, write_blob_diff, lines
-from cannonball.utils import get_differing_files, file_contents
+from cannonball.utils import get_differing_files, file_contents, list_path
 
 def list_commits(request):
     repo = Repo('/Users/briant/Desktop/joniandfriends_org')
     head = repo.head()
     commits = repo.revision_history(head)
+    
+    # TODO: cache commits in db, so we can paginate 
+    # TODO: get branch
+    
+    # Gets heads
+    print repo.refs.as_dict('refs/heads')
 
-    return render_to_response('repo/commits.html', {
+    # Gets tags
+    print repo.refs.as_dict('refs/tags')
+
+    return render_to_response('repo/commit_list.html', {
         'commits': commits
     }, context_instance=RequestContext(request))
 
-    
-def list_object(request, sha):
+
+def list_commit(request, sha=None):
     repo = Repo('/Users/briant/Desktop/joniandfriends_org')
-    repo_obj = repo.get_object(sha)
+    commit_obj = repo[sha or repo.head()]
     
-    if repo_obj.type_name == "commit":
-        return list_commit(request, repo, repo_obj)
-    elif repo_obj.type_name == 'tree':
-        return list_tree(request, repo, repo_obj)
-    elif repo_obj.type_name == 'blob': 
-        return list_blob(request, repo, repo_obj)
-
-
-def list_commit(request, repo, commit_obj):
     parent_obj = repo.get_object(commit_obj.parents[0])
     parent_tree = repo.get_object(parent_obj.tree)
     current_tree = repo.get_object(commit_obj.tree)
-    
+
     htmldiff = HtmlDiff()
-    
+
     files = []
     diffs = []
     for f in get_differing_files(repo, parent_tree, current_tree):
         a = file_contents(repo, f, parent_obj)
         b = file_contents(repo, f, commit_obj)
 
-
         output = StringIO()
         write_blob_diff(output, 
             (f, 775, a), (f, 775, b)
         )
-        #highlighted_diff = highlight(output.getvalue(), DiffLexer(), HtmlFormatter())
-        highlighted_diff = htmldiff.make_table(lines(a), lines(b))
-        
+        highlighted_diff = highlight(output.getvalue(), DiffLexer(), HtmlFormatter(linenos=True))
+
         diffs.append(highlighted_diff)
         files.append(f)
-    
+
     css = HtmlFormatter().get_style_defs('.highlight')
-    
-    return render_to_response('repo/object.html', {
+
+    return render_to_response('repo/commit_detail.html', {
         'object': commit_obj,
         'files': files, 
         'diffs': diffs,
         'css': css
-    }, context_instance=RequestContext(request))        
-
+    }, context_instance=RequestContext(request))
     
-def list_tree(request, repo, tree_obj):
+    
+def _generate_breadcrumbs(path_objects):
+    """Generate a list of breacrumbs using the given path_objects dict."""
+    # radio/migrations/blahblah.py
+    # radio = radio
+    # migrations = radio/migrations
+    # blahblah.py = []
+    crumbs = []
+    for i in range(0,len(path_objects)):
+        path_name = path_objects[i]['name']
+        path = []
+        for j in range(0,i+1):
+            path.append(path_objects[j]['name'])
+        crumbs.append({'name': path_name, 'path': "/".join(path)})
+    return crumbs
+
+def walk_path(request, sha=None, path=None):
+    repo = Repo('/Users/briant/Desktop/joniandfriends_org')
+    [git_object, path_list] = list_path(repo, sha, path)
+    breadcrumbs = _generate_breadcrumbs(path_list)
+    return render_to_response('repo/%s.html' % git_object.type_name, {
+        'object': git_object,
+        'path': path_list,
+        'breadcrumbs': breadcrumbs,
+        'sha': sha
+    }, context_instance=RequestContext(request))       
+
+
+# commmit-sha/path
+def list_tree(request, repo, tree_obj, path):
+    print path
+    
     files = []
     folders = []
     for mode, name, sha in tree_obj.entries():
@@ -87,10 +115,21 @@ def list_tree(request, repo, tree_obj):
         'folders': folders
     }, context_instance=RequestContext(request))    
     
-def list_blob(request, repo, blob_obj):
-    print type(tree_obj)
-    return render_to_response('repo/blog.html', {
-        'blob': blob_obj
+    
+def list_blob(request, repo, blob_obj, path):
+    print path 
+    
+    blob_text = blob_obj.as_pretty_string()
+    
+    lexer = guess_lexer(blob_text)
+    highlighted_text = highlight(blob_text, PythonLexer(), HtmlFormatter())    
+    
+    css = HtmlFormatter().get_style_defs('.highlight')
+    
+    return render_to_response('repo/blob.html', {
+        'blob': blob_obj,
+        'highlighted_text': highlighted_text,
+        'css': css,
     }, context_instance=RequestContext(request))
     
     

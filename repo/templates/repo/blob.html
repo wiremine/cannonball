@@ -1,0 +1,17 @@
+<html>
+<head>
+    <style type="text/css">
+        {{ css|safe }} 
+    </style>
+</head>
+<body>
+    <p>
+        <a href="/{{ sha }}/">branch</a> / 
+        {% for crumb in breadcrumbs %}
+            <a href="/{{ sha }}/{{ crumb.path }}">{{ crumb.name }}</a> {% if not forloop.last %} / {% endif %}
+        {% endfor %}
+    </p>
+    
+<pre>{{ object|safe }}</pre>
+</body>
+</html>

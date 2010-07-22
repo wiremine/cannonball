@@ -53,3 +53,40 @@ def file_contents(repo, path, commit=None):
            if name == filename:
                return repo.get_object(hexsha) #.as_pretty_string()
        return None
+       
+       
+def list_path(repo, commit_sha, path):
+    """Return the tree or blob object for a given path and commit object"""
+    commit = repo[commit_sha] or repo.head()
+    tree = repo[commit.tree]
+    path = path.split(os.path.sep)
+    path_list = []
+    should_be_leaf = False
+
+    if path == [u'']:
+        return [tree, path_list]
+
+    while path:  
+        # TODO: check should_be_leaf and throw an exception if it's true    
+        current_part = path.pop(0)
+        for entry_mode, entry_name, entry_sha in repo[tree.id].entries():
+            if current_part == entry_name:
+                current_obj = repo[entry_sha]
+                if current_obj.type_name == 'tree':
+                    path_list.append({'name': entry_name, 'sha': entry_sha})
+                    tree = current_obj
+                    break
+                elif current_obj.type_name == 'blob':
+                    path_list.append({'name': entry_name, 'sha': entry_sha})
+                    should_be_leaf = True # if we hit an object, we should be at the end of th path
+                    break
+        
+    return [current_obj, path_list]
+                    
+        
+    
+    
+    
+    
+       
+       

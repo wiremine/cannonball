@@ -3,7 +3,7 @@
 <table>
 {% for commit in commits %}
     <tr>
-        <td><a href="/{{commit.id}}/">{{ commit.commit_time }}</a></td>
+        <td><a href="/commit/{{commit.id}}/">{{ commit.commit_time }}</a></td>
         <td>{{ commit.committer  }}</td>
         <td>{{ commit.message|truncatewords:10 }}</td>
     </tr>
