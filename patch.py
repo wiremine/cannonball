@@ -140,8 +140,14 @@ def write_blob_diff(f, (old_path, old_mode, old_blob),
             f.write("deleted mode %o\n" % old_mode)
     f.write("index %s..%s %o\n" % (
         blob_id(old_blob), blob_id(new_blob), new_mode))
-    old_contents = lines(old_blob)
-    new_contents = lines(new_blob)
+    if old_blob and old_blob.type_name == 'blob':
+        old_contents = lines(old_blob)
+    else:
+        old_contents = ""
+    if new_blob and new_blob.type_name == 'blob':
+        new_contents = lines(new_blob)
+    else:
+        new_contents = ""
     f.writelines(unified_diff(old_contents, new_contents, 
         old_path, new_path))
 

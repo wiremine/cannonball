@@ -1,0 +1,27 @@
+<p>
+    Change Branch:
+    {% for branch,sha in branches.items %}
+        <a href="/{{ project.slug }}/view/{{ branch }}/">
+            {% spaceless %}
+            {% if branch == branch_name %}
+                <strong>{{ branch }}</strong> 
+            {% else %}
+                {{ branch }}
+            {% endif %}
+            {% endspaceless %}</a> {% if not forloop.last %} | {% endif %}
+    {% endfor %}
+</p>
+
+<p>
+    <a href="/{{ project.slug }}/">{{ project.name }}</a> / 
+    <a href="/{{ project.slug }}/view/{{ branch_name }}/">{{ branch_name }}</a> / 
+    {% for crumb in breadcrumbs %}
+        <a href="/{{ project.slug }}/view/{{ branch_name }}/{{ crumb.path }}">{{ crumb.name }}</a> / 
+    {% endfor %}
+</p>
+
+
+<p>
+{% for entry in object.entries %}
+    <a href="/{{ project.slug }}/view/{{ branch_name }}/{% for entry in path %}{{ entry.name }}/{% endfor %}{{ entry.1 }}">{{ entry.1 }}</a><br />
+{% endfor %}

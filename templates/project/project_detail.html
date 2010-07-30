@@ -1,0 +1,21 @@
+{% load project_helpers %}
+<h1>{{ project.name }}</h1>
+<p>{{ project.description }}</p>
+
+<p>
+View Branches:
+{% for branch in branches %}
+    <a href="/{{ project.slug}}/view/{{ branch }}">{{ branch}}<a> 
+{% endfor %}
+</p>
+
+<table border="1">    
+{% for commit in commits %}
+    <tr>
+        <td><a href="/{{ project.slug }}/commit/{{commit.id}}/">{{ commit.id|truncate_chars:7 }}</a>
+        <td>{{ commit.commit_time|unix_timestamp_to_dt }}</td>
+        <td>{{ commit.committer|truncatewords:1 }}</td>
+        <td>{{ commit.message|truncate_chars:60|capfirst|safe }}</td>
+    </tr>
+{% endfor %}
+</table>

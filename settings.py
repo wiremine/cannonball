@@ -95,7 +95,11 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
-    
-    'cannonball.repo',
+    'django.contrib.admin',
+
+    # Third party 
+    'south',
+
+    'cannonball.project',    
+
 )

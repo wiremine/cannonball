@@ -55,9 +55,8 @@ def file_contents(repo, path, commit=None):
        return None
        
        
-def list_path(repo, commit_sha, path):
+def list_path(repo, commit, path):
     """Return the tree or blob object for a given path and commit object"""
-    commit = repo[commit_sha] or repo.head()
     tree = repo[commit.tree]
     path = path.split(os.path.sep)
     path_list = []
@@ -83,6 +82,21 @@ def list_path(repo, commit_sha, path):
         
     return [current_obj, path_list]
                     
+                    
+def generate_breadcrumbs(path_objects):
+    """Generate a list of breacrumbs using the given path_objects dict."""
+    # radio/migrations/blahblah.py
+    # radio = radio
+    # migrations = radio/migrations
+    # blahblah.py = []
+    crumbs = []
+    for i in range(0,len(path_objects)):
+        path_name = path_objects[i]['name']
+        path = []
+        for j in range(0,i+1):
+            path.append(path_objects[j]['name'])
+        crumbs.append({'name': path_name, 'path': "/".join(path)})
+    return crumbs                    
         
     
     

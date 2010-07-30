@@ -1,0 +1,7 @@
+{% load timestamp_helpers %}
+{% for project in project_list %}
+<div class="project">
+    <h2><a href="/{{ project.slug }}/">{{ project.name }}</a></h2>
+    {{ project.description|safe }}
+</div>
+{% endfor %}

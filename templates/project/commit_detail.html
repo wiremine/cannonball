@@ -1,0 +1,56 @@
+{% load project_helpers %}
+<html>
+<head>
+    <style type="text/css">
+        table.diff  {border:medium;}
+        .diff_header {background-color:#e0e0e0}
+        td.diff_header {text-align:right}
+        .diff_next {background-color:#c0c0c0}
+        .diff_add {background-color:#aaffaa}
+        .diff_chg {background-color:#ffff77}
+        .diff_sub {background-color:#ffaaaa}
+
+        {{ css|safe }} 
+        
+        body {
+            font-family: arial;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+
+
+<a href="/{{ project.slug }}/">Back to {{ project.name }}</a>
+
+<p>
+    <strong>Author</strong>: {{ object.author }}<br />
+    <strong>Timestamp</strong>: {{ object.commit_time|unix_timestamp_to_dt }}
+</p>
+
+<p style="background-color: #eee; padding: 5px; "><strong>Description</strong>: {{ object.message|capfirst|linebreaksbr }}</p>
+
+<p>
+    View this commit's tree: <a href="/{{ project.slug }}/view/{{ object.id }}">{{ object.id }}</a><br />
+    View parent{{ object.parents|pluralize }}:
+    {% for parent in object.parents %}
+        <a href="/{{ project.slug }}/commit/{{ parent }}/">{{ parent }}</a>
+    {% endfor %}
+</p>
+
+
+
+
+<h3>Files</h3>
+{% for file in files %}
+    {{file }}<br />
+{% endfor %}
+
+
+<p>
+{% for diff in diffs %}
+    {{ diff|safe }}
+{% endfor %}
+
+</body>
+</html>
